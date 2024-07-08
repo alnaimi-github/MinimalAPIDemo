@@ -1,3 +1,10 @@
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using MinimalAPIDemo;
+using MinimalAPIDemo.Data;
+using MinimalAPIDemo.Models;
+using MinimalAPIDemo.Models.DTO;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAutoMapper(typeof(MappingConfig));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -14,31 +22,42 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+
+app.MapGet("/api/GetAllCoupon", () =>
+{
+    return Results.Ok(CouponStore.CouponsList);
+}).Produces<IEnumerable<Coupon>>(200);
+
+app.MapGet("/api/GetCouponById/{id}", (int id) =>
+{
+    return Results.Ok(CouponStore.CouponsList.FirstOrDefault(x => x.Id == id));
+}).WithName("GetCoupon").Produces<Coupon>(200);
+
+app.MapPost("/api/CouponCreate", (IMapper _mapper,[FromBody] CouponCreateDTO couponDto) =>
+{
+    if (string.IsNullOrEmpty(couponDto.name))
+    {
+        return Results.BadRequest("Invalid Id Or Name Coupon");
+    }
+    if (CouponStore.CouponsList.FirstOrDefault(x => x.Name.ToLower() == couponDto.name.ToLower()) != null)
+    {
+        return Results.BadRequest("Coupon Name Already Exists.");
+    }
+    var coupon = _mapper.Map<Coupon>(couponDto);
+    coupon.Id = CouponStore.CouponsList.OrderByDescending(x => x.Id).FirstOrDefault()!.Id + 1;
+    CouponStore.CouponsList.Add(coupon);
+    var couponDTO =_mapper.Map<CouponDTO>(coupon);
+    return Results.CreatedAtRoute("GetCoupon", new {Id=coupon.Id},couponDTO);
+}).Produces<CouponDTO>(201).Produces(400).Accepts<CouponCreateDTO>("application/json");
+app.MapPut("/api/CouponEdit", (Coupon coupon) =>
+{
+
+});
+app.MapDelete("/api/CouponDelete/{id}", async (int id) =>
+{
+
+});
+
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
