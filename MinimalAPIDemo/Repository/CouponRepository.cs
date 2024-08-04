@@ -12,10 +12,10 @@ namespace MinimalAPIDemo.Repository
             return await db.Coupons.ToListAsync();
         }
 
-        public async Task<Coupon> GetAsync(int id)
+        public async Task<Coupon?> GetAsync(int id)
         {
             var result = ReturnCouponById(id);
-            return result??null!;
+            return await Task.FromResult(result);
         }
 
         public async Task CreateAsync(Coupon coupon)
@@ -25,12 +25,12 @@ namespace MinimalAPIDemo.Repository
 
         public async Task UpdateAsync(Coupon coupon)
         {
-            db.Update(coupon);
+           await Task.FromResult(db.Update(coupon));
         }
 
         public async Task DeleteAsync(Coupon coupon)
         {
-            db.Remove(coupon);
+            await Task.FromResult(db.Remove(coupon));
         }
 
         public async Task SaveAsync()
@@ -38,13 +38,13 @@ namespace MinimalAPIDemo.Repository
           await  db.SaveChangesAsync();
         }
 
-        public async Task<Coupon> GetAsync(string couponName)
+        public async Task<Coupon?> GetAsync(string couponName)
         {
             var result=await db.Coupons.FirstOrDefaultAsync(x => x.Name.ToLower()==couponName.ToLower())!;
             return result??null!;
         }
 
-        private Coupon ReturnCouponById(int id)
+        private Coupon? ReturnCouponById(int id)
         {
             return db.Coupons.FirstOrDefault(x => x.Id == id)!;
         }
