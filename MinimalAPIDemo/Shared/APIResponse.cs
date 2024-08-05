@@ -3,7 +3,7 @@
 namespace MinimalAPIDemo.Shared
 {
     public record APIResponse(
-        bool IsSuccess, object Result=null!,
+        bool IsSuccess=true, object Result=null!,
         HttpStatusCode StatusCode=default,
         List<string> ErrorMessages=null!);
 }

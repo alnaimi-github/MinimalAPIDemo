@@ -15,32 +15,42 @@ public static class CouponEndPoints
     {
         app.MapGet("/api/getCoupons", GetAllCouponAsync)
             .WithName("GetCoupons")
-            .Produces<APIResponse>();
+            .Produces<APIResponse>()
+            .Produces<APIResponse>(statusCode:(int)HttpStatusCode.Unauthorized)
+            .RequireAuthorization("AdminOnly");
 
 
         app.MapGet("/api/getCouponById/{id:int}", GetCouponByIdAsync)
             .WithName("GetCouponById")
-            .Produces<APIResponse>();
+            .Produces<APIResponse>()
+            .Produces<APIResponse>(statusCode: (int)HttpStatusCode.Unauthorized)
+            .RequireAuthorization();
 
         app.MapPost("/api/createCoupon", CreateCouponAsync)
             .Produces<APIResponse>(201)
-            .Produces<APIResponse>(400)
+            .Produces<APIResponse>(404)
+            .Produces<APIResponse>(statusCode: (int)HttpStatusCode.Unauthorized)
             .Accepts<CouponCreateDTO>("application/json")
-            .WithName("CreateCoupon");
+            .WithName("CreateCoupon")
+            .RequireAuthorization();
 
 
         app.MapPut("/api/updateCoupon", UpdateCouponAsync)
             .Produces<APIResponse>()
             .Produces<APIResponse>(400)
             .Produces<APIResponse>(404)
+            .Produces<APIResponse>(statusCode: (int)HttpStatusCode.Unauthorized)
             .Accepts<CouponUpdateDTO>("application/json")
-            .WithName("UpdateCoupon");
+            .WithName("UpdateCoupon")
+            .RequireAuthorization();
 
 
         app.MapDelete("/api/deleteCoupon/{id:int}", DeleteCouponAsync)
             .Produces<APIResponse>(204)
             .Produces<APIResponse>(404)
-            .WithName("DeleteCoupon");
+            .Produces<APIResponse>(statusCode: (int)HttpStatusCode.Unauthorized)
+            .WithName("DeleteCoupon")
+            .RequireAuthorization();
     }
 
     private static async Task<IResult> GetAllCouponAsync(ICouponRepository couponRepository, ILogger<Program> logger)
